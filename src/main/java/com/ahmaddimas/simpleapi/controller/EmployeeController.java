@@ -1,52 +1,60 @@
 package com.ahmaddimas.simpleapi.controller;
 
 import com.ahmaddimas.simpleapi.model.Employee;
-import com.ahmaddimas.simpleapi.service.EmployeeService;
+import com.ahmaddimas.simpleapi.service.EmployeeServiceInterface;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping(path = "api/v1/employee")
 public class EmployeeController {
 
-    private EmployeeService employeeService;
+    protected EmployeeServiceInterface employeeService;
 
     @Autowired
-    public EmployeeController(EmployeeService employeeService) {
+    public EmployeeController(EmployeeServiceInterface employeeService) {
         this.employeeService = employeeService;
     }
 
-    @GetMapping("list")
-    public List<Employee> getList()
-    {
-        return this.employeeService.getList();
+    @GetMapping
+    public List<Employee> getList(@RequestParam(defaultValue = "") String name) {
+        return this.employeeService.getList(name);
     }
 
-    @GetMapping("show/{employeeId}")
-    public Optional<Employee> show(@PathVariable(name = "employeeId") Long employeeId)
-    {
+    @GetMapping("{employeeId}")
+    public Employee show(@PathVariable(name = "employeeId") Long employeeId) {
         return this.employeeService.getEmployeeById(employeeId);
     }
 
-    @PostMapping("add")
-    public Employee add(@RequestBody Employee employee)
-    {
+    @PostMapping
+    public Employee add(@RequestBody Employee employee) {
+        this.validateRequest(employee);
         return this.employeeService.addEmployee(employee);
     }
 
-    @PutMapping("update")
-    public Employee update(@RequestBody Employee employee)
-    {
-        return this.employeeService.editEmployee(employee);
+    @PutMapping("{employeeId}")
+    public Employee update(@PathVariable(name = "employeeId") Long employeeId, @RequestBody Employee employee) {
+        this.validateRequest(employee);
+        return this.employeeService.editEmployee(employeeId, employee);
     }
 
     @DeleteMapping("{employeeId}")
-    public String delete(@PathVariable(name = "employeeId") Long employeeId)
-    {
+    public String delete(@PathVariable(name = "employeeId") Long employeeId) {
         this.employeeService.deleteEmployee(employeeId);
         return "Success";
+    }
+
+    private void validateRequest(Employee employee) {
+        if (employee.getName() == null || employee.getName().isEmpty()) {
+            throw new RuntimeException("name is required");
+        }
+        if (employee.getSalary() == null) {
+            throw new RuntimeException("salary is required");
+        }
+        if (employee.getGradeId() == null) {
+            throw new RuntimeException("grade_id is required");
+        }
     }
 }

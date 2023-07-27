@@ -1,33 +1,54 @@
 package com.ahmaddimas.simpleapi.controller;
 
 import com.ahmaddimas.simpleapi.model.Grade;
-import com.ahmaddimas.simpleapi.service.GradeService;
+import com.ahmaddimas.simpleapi.service.GradeServiceInterface;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping(path = "api/v1/grade")
 public class GradeController {
 
-    private GradeService gradeService;
+    protected GradeServiceInterface gradeService;
 
     @Autowired
-    public GradeController(GradeService gradeService) {
+    public GradeController(GradeServiceInterface gradeService) {
         this.gradeService = gradeService;
     }
 
-    @GetMapping("list")
-    public List<Grade> getList()
-    {
-        return this.gradeService.getList();
+    @GetMapping
+    public List<Grade> getList(@RequestParam(defaultValue = "") String name) {
+        return this.gradeService.getList(name);
     }
 
-    @GetMapping("show/{gradeId}")
-    public Optional<Grade> show(@PathVariable(name = "gradeId") Integer gradeId)
-    {
+    @GetMapping("{gradeId}")
+    public Grade show(@PathVariable(name = "gradeId") Integer gradeId) throws Exception {
         return this.gradeService.getGradeById(gradeId);
+    }
+
+    @PostMapping
+    public Grade add(@RequestBody Grade grade) {
+        this.validateRequest(grade);
+        return this.gradeService.addGrade(grade);
+    }
+
+    @PutMapping("{gradeId}")
+    public Grade update(@PathVariable(name = "gradeId") Integer gradeId, @RequestBody Grade grade) {
+        this.validateRequest(grade);
+        return this.gradeService.editGrade(gradeId, grade);
+    }
+
+    @DeleteMapping("{gradeId}")
+    public String delete(@PathVariable(name = "gradeId") Integer gradeId) {
+        this.gradeService.deleteGrade(gradeId);
+        return "Success";
+    }
+
+    private void validateRequest(Grade grade) {
+        if (grade.getName() == null || grade.getName().isEmpty()) {
+            throw new RuntimeException("name is required");
+        }
     }
 }

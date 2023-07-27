@@ -1,19 +1,21 @@
 package com.ahmaddimas.simpleapi.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.persistence.*;
 
 @Entity
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Grade {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @Column(nullable = false)
     private String name;
 
-    @JsonIgnore
-    @Column(nullable = false)
+    @JsonProperty(value = "bonus_percentage")
     private Integer bonusPercentage;
 
     public Grade() {}

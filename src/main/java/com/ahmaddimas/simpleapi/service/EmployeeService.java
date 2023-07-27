@@ -11,10 +11,10 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class EmployeeService {
+public class EmployeeService implements EmployeeServiceInterface {
 
-    private EmployeeRepository employeeRepository;
-    private GradeRepository gradeRepository;
+    protected EmployeeRepository employeeRepository;
+    protected GradeRepository gradeRepository;
 
     @Autowired
     public EmployeeService(EmployeeRepository employeeRepository, GradeRepository gradeRepository) {
@@ -22,37 +22,52 @@ public class EmployeeService {
         this.gradeRepository = gradeRepository;
     }
 
-    public List<Employee> getList()
-    {
-        return this.employeeRepository.findAll();
-    }
-
-    public Optional<Employee> getEmployeeById(Long employeeId)
-    {
-        return this.employeeRepository.findById(employeeId);
-    }
-
-    public Employee addEmployee(Employee employee)
-    {
-        System.out.println(employee);
-        if (employee.getGradeId() == null) {
-            throw new IllegalStateException("grade_id is required");
+    @Override
+    public List<Employee> getList(String name) {
+        List<Employee> employeeList;
+        if (!name.isEmpty()) {
+            employeeList = this.employeeRepository.findAllByName(name);
+        } else {
+            employeeList = this.employeeRepository.findAll();
         }
+        return employeeList;
+    }
+
+    @Override
+    public Employee getEmployeeById(Long employeeId) {
+        return this.employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new RuntimeException("Employee with id "+ employeeId +" does not exists"));
+    }
+
+    @Override
+    public Employee addEmployee(Employee employee) {
         Optional<Grade> grade = this.gradeRepository.findById(employee.getGradeId());
         if (!grade.isPresent()) {
-            throw new IllegalStateException("Grade with id "+ employee.getGradeId() +" does not exists");
+            throw new RuntimeException("Grade with id "+ employee.getGradeId() +" does not exists");
         }
+        employee.setId(null);
         employee.setGrade(grade.get());
         return this.employeeRepository.save(employee);
     }
 
-    public Employee editEmployee(Employee employee)
-    {
-        return this.employeeRepository.save(employee);
+    @Override
+    public Employee editEmployee(Long employeeId, Employee employee) {
+        Employee savedEmployee = this.employeeRepository.findById(employeeId).orElse(null);
+        if (savedEmployee == null) {
+            throw new RuntimeException("Employee with id "+ employeeId +" does not exists");
+        }
+        Grade grade = this.gradeRepository.findById(employee.getGradeId()).orElse(null);
+        if (grade == null) {
+            throw new RuntimeException("Grade with id "+ employee.getGradeId() +" does not exists");
+        }
+        savedEmployee.setName(employee.getName());
+        savedEmployee.setSalary(employee.getSalary());
+        savedEmployee.setGrade(grade);
+        return this.employeeRepository.save(savedEmployee);
     }
 
-    public void deleteEmployee(Long employeeId)
-    {
+    @Override
+    public void deleteEmployee(Long employeeId) {
         this.employeeRepository.deleteById(employeeId);
     }
 }
