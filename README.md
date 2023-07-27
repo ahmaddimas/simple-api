@@ -1,5 +1,10 @@
 # Getting Started
 
+## Software
+* Java 8
+* Spring Boot 2.7
+
+
 ## API Documentations
 
 * [Postman Documentations](https://documenter.getpostman.com/view/5858223/2s946pYozn)
